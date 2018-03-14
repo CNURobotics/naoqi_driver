@@ -23,6 +23,7 @@
 #include <boost/program_options.hpp>
 
 #include "naoqi_env.hpp"
+#include "ros_env.hpp"
 #include "helpers/driver_helpers.hpp"
 
 int main(int argc, char** argv)
@@ -37,7 +38,9 @@ int main(int argc, char** argv)
   po::options_description desc("Options");
   desc.add_options()
     ("help,h", "print help message")
-    ("roscore_ip,r", po::value<std::string>(), "set the ip of the roscore to use")
+    ("roscore_ip,r", po::value<std::string>(), "set the IP of the roscore to use")
+    ("roscore_hostname,r", po::value<std::string>(), "set the HOSTNAME of the roscore to use")
+    ("ros_hostname,r",     po::value<std::string>(), "set the HOSTNAME of the this node to use")
     ("network_interface,i", po::value<std::string>()->default_value("eth0"),  "set the network interface over which to connect")
     ("namespace,n", po::value<std::string>()->default_value("naoqi_driver_node"), "set an explicit namespace in case ROS namespace variables cannot be used");
 
@@ -74,21 +77,43 @@ int main(int argc, char** argv)
 
   app.session()->registerService("ROS-Driver", bs);
 
+  bs->init();
   // set ros paramters directly upfront if available
   if ( vm.count("roscore_ip") )
   {
     std::string roscore_ip = vm["roscore_ip"].as<std::string>();
     std::string network_interface = vm["network_interface"].as<std::string>();
 
+    std::map< std::string, std::string > ros_remapping;
+    ros_remapping["__master"] = "http://"+roscore_ip+":11311";
+    ros_remapping["__ip"] = ::naoqi::ros_env::getROSIP(network_interface);
+
     std::cout << BOLDYELLOW << "using ip address: "
               << BOLDCYAN << roscore_ip << " @ " << network_interface << RESETCOLOR << std::endl;
-    bs->init();
-    bs->setMasterURINet( "http://"+roscore_ip+":11311", network_interface);
+    bs->setROSNetwork( ros_remapping);
+  }
+  else if ( vm.count("roscore_hostname") )
+  {
+    std::string roscore_hostname  = vm["roscore_hostname"].as<std::string>();
+    std::string ros_hostname      = roscore_hostname;
+    if ( vm.count("ros_hostname") )
+    {
+      ros_hostname = vm["ros_hostname"].as<std::string>();
+    }
+    else{
+      std::cout << " Using same hostname (" << ros_hostname << ") for ROS_MASTER_URI and ROS_HOSTNAME!";
+    }
+    std::map< std::string, std::string > ros_remapping;
+    ros_remapping["__master"] = "http://"+roscore_hostname+":11311";
+    ros_remapping["__hostname"] = ros_hostname;
+
+    std::cout << BOLDYELLOW << "using hostname: "
+              << BOLDCYAN << ros_hostname << " connecting to " << roscore_hostname << RESETCOLOR << std::endl;
+    bs->setROSNetwork( ros_remapping);
   }
   else
   {
     std::cout << BOLDRED << "No ip address given. Run qicli call to set the master uri" << RESETCOLOR << std::endl;
-    bs->init();
   }
 
   app.run();

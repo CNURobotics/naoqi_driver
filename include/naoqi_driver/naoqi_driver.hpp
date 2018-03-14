@@ -188,6 +188,13 @@ public:
   void setMasterURI( const std::string& uri );
 
   /**
+  * @brief qicli call function to set current ROS networking data
+  * @param string map with ros network mappings
+  */
+  void setROSNetwork( std::map< std::string, std::string >& remap);
+
+
+  /**
   * @brief qicli call function to start/enable publishing all registered publisher
   */
   void startPublishing();

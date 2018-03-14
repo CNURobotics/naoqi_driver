@@ -2,10 +2,12 @@
 
   <arg name="nao_ip"            default="$(optenv NAO_IP)" />
   <arg name="nao_port"          default="$(optenv NAO_PORT 9559)" />
-  <arg name="roscore_ip"        default="127.0.0.1" />
-  <arg name="network_interface" default="eth0" />
+  <!--arg name="roscore_ip"        default="$(optenv ROS_HOSTNAME 127.0.0.1)" />
+  <arg name="network_interface" default="$(optenv NETWORK_INTERFACE eth0)" / -->
+  <arg name="roscore_hostname"  default="$(optenv ROS_HOSTNAME localhost)" />
+  <arg name="ros_hostname"      default="$(optenv ROS_HOSTNAME localhost)" />
   <arg name="namespace"         default="naoqi_driver" />
 
-  <node pkg="naoqi_driver" type="naoqi_driver_node" name="$(arg namespace)" required="true" args="--qi-url=tcp://$(arg nao_ip):$(arg nao_port) --roscore_ip=$(arg roscore_ip) --network_interface=$(arg network_interface) --namespace=$(arg namespace)" output="screen" />
+  <node pkg="naoqi_driver" type="naoqi_driver_node" name="$(arg namespace)" required="true" args="--qi-url=tcp://$(arg nao_ip):$(arg nao_port) --roscore_hostname=$(arg roscore_hostname) --ros_hostname=$(arg roscore_hostname) --namespace=$(arg namespace)" output="screen" />
 
 </launch>

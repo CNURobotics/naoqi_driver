@@ -74,7 +74,7 @@ static std::string getPrefix()
   return prefix;
 }
 
-static void setMasterURI( const std::string& uri, const std::string& network_interface )
+static void setMasterURI( std::map< std::string, std::string >& remap )
 {
   if (ros::isInitialized() )
   {
@@ -82,14 +82,12 @@ static void setMasterURI( const std::string& uri, const std::string& network_int
     ros::shutdown();
   }
 
-  setenv("ROS_MASTER_URI", uri.c_str(), 1);
+  setenv("ROS_MASTER_URI", remap["__master"].c_str(), 1);
 
-  std::string my_master = "__master="+uri;
-  std::map< std::string, std::string > remap;
-  remap["__master"] = uri;
-  remap["__ip"] = ::naoqi::ros_env::getROSIP(network_interface);
+  //std::string my_master = "__master="+uri;
+  //const char* ns_env = std::getenv("ROS_NAMESPACE");
+
   // init ros without a sigint-handler in order to shutdown correctly by naoqi
-  const char* ns_env = std::getenv("ROS_NAMESPACE");
   ros::init( remap, (::naoqi::ros_env::getPrefix()), ros::init_options::NoSigintHandler );
   // to prevent shutdown based on no existing nodehandle
   ros::start();

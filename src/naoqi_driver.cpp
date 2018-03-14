@@ -924,7 +924,17 @@ void Driver::setMasterURI( const std::string& uri)
   setMasterURINet(uri, "eth0");
 }
 
-void Driver::setMasterURINet( const std::string& uri, const std::string& network_interface)
+void Driver::setMasterURINet( const std::string& uri, const std::string& interface)
+{
+  std::map< std::string, std::string > ros_remapping;
+  ros_remapping["__master"] = uri;
+  ros_remapping["__ip"] = ::naoqi::ros_env::getROSIP(interface);
+
+  setROSNetwork(ros_remapping);
+}
+
+
+void Driver::setROSNetwork(std::map< std::string, std::string >& remap)
 {
   // To avoid two calls to this function happening at the same time
   boost::mutex::scoped_lock lock( mutex_conv_queue_ );
@@ -936,7 +946,7 @@ void Driver::setMasterURINet( const std::string& uri, const std::string& network
   {
     nhPtr_.reset();
     std::cout << "nodehandle reset " << std::endl;
-    ros_env::setMasterURI( uri, network_interface );
+    ros_env::setMasterURI( remap );
     nhPtr_.reset( new ros::NodeHandle("~") );
   }
 
